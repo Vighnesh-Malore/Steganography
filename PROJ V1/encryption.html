@@ -1,0 +1,269 @@
+<html lang="en">>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hide Text in Image</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 50px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .content {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .container {
+            width: 300px;
+            height: 300px;
+            margin: 30px auto;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #666;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #111;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 10px;
+            font-family: 'Poppins', sans-serif;
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            margin: 20px 0 10px 0;
+        }
+
+        input[type="file"] {
+            color: #fff;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            width: 150px;
+            height: 55px;
+            position: relative;
+            background: none;
+            outline: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .top {
+            width: 100%;
+            height: 100%;
+            background: rgb(255, 255, 238);
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgb(36, 38, 34);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 7mm;
+            outline: 2px solid rgb(36, 38, 34);
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bottom {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgb(229, 229, 199);
+            top: 10px;
+            left: 0;
+            border-radius: 7mm;
+            outline: 2px solid rgb(36, 38, 34);
+            z-index: -1;
+        }
+
+        .bottom::before {
+            position: absolute;
+            content: "";
+            width: 2px;
+            height: 9px;
+            background: rgb(36, 38, 34);
+            bottom: 0;
+            left: 15%;
+        }
+
+        .bottom::after {
+            position: absolute;
+            content: "";
+            width: 2px;
+            height: 9px;
+            background: rgb(36, 38, 34);
+            bottom: 0;
+            left: 85%;
+        }
+
+        button:active .top {
+            transform: translateY(10px);
+        }
+
+        button::before {
+            position: absolute;
+            content: "";
+            width: calc(100% + 2px);
+            height: 100%;
+            background: rgb(140, 140, 140);
+            top: 14px;
+            left: -1px;
+            border-radius: 7mm;
+            outline: 2px solid rgb(36, 38, 34);
+            z-index: -1;
+        }
+
+        .top::before {
+            position: absolute;
+            content: "";
+            width: 15px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            transform: skewX(30deg);
+            left: -20px;
+            transition: 0.25s;
+        }
+
+        button:active .top::before {
+            left: calc(100% + 20px);
+        }
+    </style>
+</head>
+<body>
+    <h1>HIDE TEXT IN IMAGE</h1>
+    <div class="content">
+        <label>Secret Message:</label>
+        <textarea id="secretText" placeholder="Type your secret message here..."></textarea>
+        
+        <label>Cover Image:</label>
+        <input type="file" id="imageInput" accept="image/*">
+        
+        <div class="container">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div class="button-container">
+            <button onclick="hideText()">
+                <div class="top">HIDE TEXT</div>
+                <div class="bottom"></div>
+            </button>
+            <button onclick="saveImage()">
+                <div class="top">SAVE IMAGE</div>
+                <div class="bottom"></div>
+            </button>
+            <button onclick="window.location.href='index.html'">
+                <div class="top">BACK</div>
+                <div class="bottom"></div>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const imageInput = document.getElementById('imageInput');
+        const secretText = document.getElementById('secretText');
+        let loadedImage = null;
+
+        canvas.width = 300;
+        canvas.height = 300;
+
+        imageInput.onchange = function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, 300, 300);
+                    loadedImage = ctx.getImageData(0, 0, 300, 300);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function hideText() {
+            if (!loadedImage) {
+                alert('Please upload an image first!');
+                return;
+            }
+            
+            const text = secretText.value;
+            if (!text) {
+                alert('Please enter a secret message!');
+                return;
+            }
+
+            const imageData = ctx.createImageData(300, 300);
+            const pixels = imageData.data;
+            
+            // Copy original image
+            for (let i = 0; i < loadedImage.data.length; i++) {
+                pixels[i] = loadedImage.data[i];
+            }
+
+            // Convert text to binary
+            const binaryText = text.split('').map(char => 
+                char.charCodeAt(0).toString(2).padStart(8, '0')
+            ).join('') + '11111111'; // End marker
+
+            // Hide text in LSB of pixels
+            for (let i = 0; i < binaryText.length; i++) {
+                if (i >= pixels.length) break;
+                
+                // Modify least significant bit of red channel
+                pixels[i * 4] = (pixels[i * 4] & 0xFE) | parseInt(binaryText[i]);
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            alert('Text hidden successfully!');
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'hidden-text.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
